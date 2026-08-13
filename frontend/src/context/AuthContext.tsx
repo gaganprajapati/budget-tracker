@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { apiClient } from '../api/apiClient';
 
 interface User {
@@ -21,6 +22,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(localStorage.getItem('budget_tracker_token'));
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     async function checkAuth(): Promise<void> {
@@ -49,6 +51,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
+    queryClient.clear(); // Clear any previous user's query cache
     const response = await apiClient.post('/auth/login', { email, password });
     if (response.data.success) {
       const userObj = response.data.data.user;
@@ -65,6 +68,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const signup = async (email: string, password: string): Promise<void> => {
+    queryClient.clear();
     const response = await apiClient.post('/auth/signup', { email, password });
     if (response.data.success) {
       await login(email, password);
@@ -72,10 +76,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = (): void => {
+    queryClient.clear(); // Purge all cached reports, categories, plans, and locks from memory
     localStorage.removeItem('budget_tracker_token');
     setToken(null);
     setUser(null);
   };
+
 
   return (
     <AuthContext.Provider value={{ user, token, isLoading, login, signup, logout }}>
