@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { getDbClient } from '../context/requestContext.js';
 import { Actual } from '../types/index.js';
 
 export interface IActualRepository {
@@ -11,7 +11,8 @@ export interface IActualRepository {
 
 export class ActualRepository implements IActualRepository {
   public async getActualsByUser(userId: string, startDate?: string, endDate?: string): Promise<Actual[]> {
-    let query = supabase.from('actuals').select('*').eq('user_id', userId);
+    const db = getDbClient();
+    let query = db.from('actuals').select('*').eq('user_id', userId);
 
     if (startDate) {
       query = query.gte('month', startDate);
@@ -30,7 +31,8 @@ export class ActualRepository implements IActualRepository {
   }
 
   public async createActual(userId: string, categoryId: string, month: string, amount: number, note?: string): Promise<Actual> {
-    const { data, error } = await supabase
+    const db = getDbClient();
+    const { data, error } = await db
       .from('actuals')
       .insert({
         user_id: userId,
@@ -50,7 +52,8 @@ export class ActualRepository implements IActualRepository {
   }
 
   public async updateActual(userId: string, id: string, amount: number, note?: string): Promise<Actual> {
-    const { data, error } = await supabase
+    const db = getDbClient();
+    const { data, error } = await db
       .from('actuals')
       .update({
         amount,
@@ -70,7 +73,8 @@ export class ActualRepository implements IActualRepository {
   }
 
   public async deleteActual(userId: string, id: string): Promise<void> {
-    const { error } = await supabase.from('actuals').delete().eq('id', id).eq('user_id', userId);
+    const db = getDbClient();
+    const { error } = await db.from('actuals').delete().eq('id', id).eq('user_id', userId);
 
     if (error) {
       throw new Error(`Failed to delete actual spend entry: ${error.message}`);
@@ -80,7 +84,8 @@ export class ActualRepository implements IActualRepository {
   public async bulkInsertActuals(
     actuals: Array<{ user_id: string; category_id: string; month: string; amount: number; note?: string }>
   ): Promise<Actual[]> {
-    const { data, error } = await supabase.from('actuals').insert(actuals).select();
+    const db = getDbClient();
+    const { data, error } = await db.from('actuals').insert(actuals).select();
 
     if (error) {
       throw new Error(`Failed to batch import actual spend entries: ${error.message}`);

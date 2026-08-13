@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { getDbClient } from '../context/requestContext.js';
 import { Plan } from '../types/index.js';
 
 export interface IPlanRepository {
@@ -9,7 +9,8 @@ export interface IPlanRepository {
 
 export class PlanRepository implements IPlanRepository {
   public async getPlansByUser(userId: string, startDate?: string, endDate?: string): Promise<Plan[]> {
-    let query = supabase.from('plans').select('*').eq('user_id', userId);
+    const db = getDbClient();
+    let query = db.from('plans').select('*').eq('user_id', userId);
 
     if (startDate) {
       query = query.gte('month', startDate);
@@ -28,7 +29,8 @@ export class PlanRepository implements IPlanRepository {
   }
 
   public async upsertPlan(userId: string, categoryId: string, month: string, targetAmount: number): Promise<Plan> {
-    const { data, error } = await supabase
+    const db = getDbClient();
+    const { data, error } = await db
       .from('plans')
       .upsert(
         {
@@ -51,7 +53,8 @@ export class PlanRepository implements IPlanRepository {
   }
 
   public async deletePlan(userId: string, id: string): Promise<void> {
-    const { error } = await supabase.from('plans').delete().eq('id', id).eq('user_id', userId);
+    const db = getDbClient();
+    const { error } = await db.from('plans').delete().eq('id', id).eq('user_id', userId);
 
     if (error) {
       throw new Error(`Failed to delete spending plan: ${error.message}`);

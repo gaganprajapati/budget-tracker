@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { getDbClient } from '../context/requestContext.js';
 import { Category } from '../types/index.js';
 
 export interface ICategoryRepository {
@@ -11,7 +11,8 @@ export interface ICategoryRepository {
 
 export class CategoryRepository implements ICategoryRepository {
   public async getCategoriesByUser(userId: string): Promise<Category[]> {
-    const { data, error } = await supabase
+    const db = getDbClient();
+    const { data, error } = await db
       .from('categories')
       .select('*')
       .eq('user_id', userId)
@@ -25,7 +26,8 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   public async createCategory(userId: string, name: string, color: string = '#4F46E5'): Promise<Category> {
-    const { data, error } = await supabase
+    const db = getDbClient();
+    const { data, error } = await db
       .from('categories')
       .insert({ user_id: userId, name: name.trim(), color })
       .select()
@@ -39,6 +41,7 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   public async updateCategory(userId: string, id: string, name: string, color?: string): Promise<Category> {
+    const db = getDbClient();
     const updateData: { name: string; color?: string; updated_at: string } = {
       name: name.trim(),
       updated_at: new Date().toISOString(),
@@ -47,7 +50,7 @@ export class CategoryRepository implements ICategoryRepository {
       updateData.color = color;
     }
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('categories')
       .update(updateData)
       .eq('id', id)
@@ -63,7 +66,8 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   public async deleteCategory(userId: string, id: string): Promise<void> {
-    const { error } = await supabase
+    const db = getDbClient();
+    const { error } = await db
       .from('categories')
       .delete()
       .eq('id', id)
@@ -75,7 +79,8 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   public async findByName(userId: string, name: string): Promise<Category | null> {
-    const { data, error } = await supabase
+    const db = getDbClient();
+    const { data, error } = await db
       .from('categories')
       .select('*')
       .eq('user_id', userId)

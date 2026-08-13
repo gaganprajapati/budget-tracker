@@ -1,4 +1,4 @@
-import { supabase } from '../config/supabase.js';
+import { getDbClient } from '../context/requestContext.js';
 import { PeriodLock } from '../types/index.js';
 
 export interface ILockRepository {
@@ -11,7 +11,8 @@ export interface ILockRepository {
 
 export class LockRepository implements ILockRepository {
   public async getUserLocks(userId: string): Promise<PeriodLock[]> {
-    const { data, error } = await supabase
+    const db = getDbClient();
+    const { data, error } = await db
       .from('period_locks')
       .select('*')
       .eq('user_id', userId);
@@ -24,7 +25,8 @@ export class LockRepository implements ILockRepository {
   }
 
   public async isMonthLocked(userId: string, month: string): Promise<boolean> {
-    const { data, error } = await supabase
+    const db = getDbClient();
+    const { data, error } = await db
       .from('period_locks')
       .select('id')
       .eq('user_id', userId)
@@ -39,7 +41,8 @@ export class LockRepository implements ILockRepository {
   }
 
   public async lockMonth(userId: string, month: string): Promise<PeriodLock> {
-    const { data, error } = await supabase
+    const db = getDbClient();
+    const { data, error } = await db
       .from('period_locks')
       .upsert({ user_id: userId, month, locked_at: new Date().toISOString() }, { onConflict: 'user_id,month' })
       .select()
@@ -53,7 +56,8 @@ export class LockRepository implements ILockRepository {
   }
 
   public async unlockMonth(userId: string, month: string): Promise<void> {
-    const { error } = await supabase
+    const db = getDbClient();
+    const { error } = await db
       .from('period_locks')
       .delete()
       .eq('user_id', userId)
@@ -65,6 +69,7 @@ export class LockRepository implements ILockRepository {
   }
 
   public async lockQuarter(userId: string, year: number, quarter: number): Promise<PeriodLock[]> {
+    const db = getDbClient();
     const startMonthNum = (quarter - 1) * 3 + 1;
     const monthsToLock: string[] = [];
 
@@ -80,7 +85,7 @@ export class LockRepository implements ILockRepository {
       locked_at: new Date().toISOString(),
     }));
 
-    const { data, error } = await supabase
+    const { data, error } = await db
       .from('period_locks')
       .upsert(locksToUpsert, { onConflict: 'user_id,month' })
       .select();

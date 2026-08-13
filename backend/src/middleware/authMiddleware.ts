@@ -1,11 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
-import { supabase } from '../config/supabase.js';
+import { SupabaseClient } from '@supabase/supabase-js';
+import { authService } from '../services/authService.js';
+import { requestContextStorage, RequestContext } from '../context/requestContext.js';
 
 export interface AuthenticatedRequest extends Request {
   user?: {
     id: string;
     email: string;
   };
+  token?: string;
+  supabase?: SupabaseClient;
 }
 
 export async function authMiddleware(
@@ -29,33 +33,34 @@ export async function authMiddleware(
   const token = authHeader.split(' ')[1];
 
   try {
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    const userSession = await authService.verifyToken(token);
+    const authenticatedClient = authService.getAuthenticatedClient(token);
 
-    if (error || !user) {
-      res.status(401).json({
-        success: false,
-        error: {
-          code: 'UNAUTHORIZED',
-          message: 'Invalid or expired authentication token.',
-        },
-      });
-      return;
-    }
+    req.user = userSession;
+    req.token = token;
+    req.supabase = authenticatedClient;
 
-    req.user = {
-      id: user.id,
-      email: user.email || '',
+    const context: RequestContext = {
+      userId: userSession.id,
+      userEmail: userSession.email,
+      token,
+      supabase: authenticatedClient,
     };
 
-    next();
+    // Run the remaining async middleware/controller stack within AsyncLocalStorage context
+    requestContextStorage.run(context, () => {
+      next();
+    });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Authentication verification failed';
-    res.status(500).json({
+    res.status(401).json({
       success: false,
       error: {
-        code: 'AUTH_ERROR',
+        code: 'UNAUTHORIZED',
         message,
       },
     });
   }
 }
+
+
