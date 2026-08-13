@@ -7,7 +7,9 @@ import { env } from './config/env.config.js';
 const app: Express = express();
 const PORT: number = env.PORT;
 
-app.use(helmet());
+const helmetMiddleware = typeof helmet === 'function' ? helmet : (helmet as unknown as { default: () => express.RequestHandler }).default;
+app.use(helmetMiddleware());
+
 app.use(
   cors({
     origin: '*',
