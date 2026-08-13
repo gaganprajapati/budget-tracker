@@ -10,9 +10,18 @@ const PORT: number = env.PORT;
 const helmetMiddleware = typeof helmet === 'function' ? helmet : (helmet as unknown as { default: () => express.RequestHandler }).default;
 app.use(helmetMiddleware());
 
+app.disable('etag');
+
+app.use((_req: Request, res: Response, next: NextFunction) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 app.use(
   cors({
-    origin: '*',
+    origin: true, // Dynamically mirror request origin to comply with credentials: true
     credentials: true,
   })
 );
