@@ -61,7 +61,7 @@ export const VarianceChart: React.FC<VarianceChartProps> = ({ rows }) => {
               }}
               formatter={(val: number) => [`$${val.toLocaleString()}`, '']}
             />
-            <Legend wrapperStyle={{ paddingTop: '10px' }} />
+            <Legend wrapperStyle={{ paddingTop: '10px', bottom: '10px' }} />
             <Bar dataKey="Plan" fill="#6366F1" radius={[4, 4, 0, 0]} name="Target Plan ($)" />
             <Bar dataKey="Actual" fill="#10B981" radius={[4, 4, 0, 0]} name="Logged Actual ($)" />
           </BarChart>

@@ -2,7 +2,9 @@ import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware.js';
 import { supabase } from '../config/supabase.js';
 import { env } from '../config/env.config.js';
+import { authService } from '../services/authService.js';
 import { AuthSignupSchema, AuthLoginSchema } from '../validators/schemas.js';
+
 
 export async function signup(req: AuthenticatedRequest, res: Response): Promise<void> {
   const parseResult = AuthSignupSchema.safeParse(req.body);
@@ -101,7 +103,11 @@ export async function getCurrentUser(req: AuthenticatedRequest, res: Response): 
   });
 }
 
-export async function logout(_req: AuthenticatedRequest, res: Response): Promise<void> {
+export async function logout(req: AuthenticatedRequest, res: Response): Promise<void> {
+  if (req.token) {
+    authService.invalidateToken(req.token);
+  }
   await supabase.auth.signOut();
   res.status(200).json({ success: true, message: 'Logged out successfully' });
 }
+
