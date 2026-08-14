@@ -63,6 +63,19 @@ export const LocksPage: React.FC = () => {
     },
   });
 
+  const isSelectedMonthLocked = locks.some((l) => l.month === monthToLock);
+
+  const getQuarterMonths = (year: number, quarter: number): string[] => {
+    const startMonth = (quarter - 1) * 3 + 1;
+    return [0, 1, 2].map((i) => {
+      const m = startMonth + i;
+      return `${year}-${m < 10 ? '0' : ''}${m}`;
+    });
+  };
+
+  const quarterMonths = getQuarterMonths(quarterYear, quarterNum);
+  const isSelectedQuarterFullyLocked = quarterMonths.every((qm) => locks.some((l) => l.month === qm));
+
   return (
     <div className="fade-in">
       <div style={{ marginBottom: '24px' }}>
@@ -95,12 +108,24 @@ export const LocksPage: React.FC = () => {
           </div>
           <button
             className="btn btn-primary"
-            style={{ width: '100%', marginTop: '12px', background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}
+            style={{
+              width: '100%',
+              marginTop: '12px',
+              background: isSelectedMonthLocked ? 'var(--bg-card-hover)' : 'linear-gradient(135deg, #f59e0b, #d97706)',
+              opacity: isSelectedMonthLocked ? 0.5 : 1,
+              cursor: isSelectedMonthLocked ? 'not-allowed' : 'pointer',
+              border: isSelectedMonthLocked ? '1px solid var(--border-color)' : undefined,
+              color: isSelectedMonthLocked ? 'var(--text-secondary)' : undefined,
+            }}
             onClick={() => lockMonthMutation.mutate(monthToLock)}
-            disabled={lockMonthMutation.isPending}
+            disabled={isSelectedMonthLocked || lockMonthMutation.isPending}
           >
             <Lock size={16} />
-            {lockMonthMutation.isPending ? 'Locking...' : `Lock Period ${monthToLock}`}
+            {lockMonthMutation.isPending
+              ? 'Locking...'
+              : isSelectedMonthLocked
+              ? `Period ${monthToLock} Already Locked`
+              : `Lock Period ${monthToLock}`}
           </button>
         </div>
 
@@ -131,15 +156,29 @@ export const LocksPage: React.FC = () => {
           </div>
           <button
             className="btn btn-primary"
-            style={{ width: '100%', marginTop: '12px' }}
+            style={{
+              width: '100%',
+              marginTop: '12px',
+              background: isSelectedQuarterFullyLocked ? 'var(--bg-card-hover)' : undefined,
+              opacity: isSelectedQuarterFullyLocked ? 0.5 : 1,
+              cursor: isSelectedQuarterFullyLocked ? 'not-allowed' : 'pointer',
+              border: isSelectedQuarterFullyLocked ? '1px solid var(--border-color)' : undefined,
+              color: isSelectedQuarterFullyLocked ? 'var(--text-secondary)' : undefined,
+            }}
             onClick={() => lockQuarterMutation.mutate({ year: quarterYear, quarter: quarterNum })}
-            disabled={lockQuarterMutation.isPending}
+            disabled={isSelectedQuarterFullyLocked || lockQuarterMutation.isPending}
           >
             <Lock size={16} />
-            {lockQuarterMutation.isPending ? 'Locking Quarter...' : `Lock Q${quarterNum} ${quarterYear}`}
+            {lockQuarterMutation.isPending
+              ? 'Locking Quarter...'
+              : isSelectedQuarterFullyLocked
+              ? `Q${quarterNum} ${quarterYear} Already Locked`
+              : `Lock Q${quarterNum} ${quarterYear}`}
           </button>
+
         </div>
       </div>
+
 
       <div className="glass-panel" style={{ padding: '24px' }}>
         <h3 style={{ fontSize: '1.1rem', fontWeight: 700, marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
