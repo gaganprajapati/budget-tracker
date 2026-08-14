@@ -162,22 +162,21 @@ Even though the current dataset is small, the database schema is optimized for l
 
 ---
 
-## What Would Be Improved Before Production
+## 🔮 What Would Be Improved Before Production
 
-1. **Structured Logging & API Latency Metrics**: Replace standard console logs with a high-performance structured JSON logger (e.g., `Pino` or `Winston`) with correlation IDs (`request_id`, `trace_id`), HTTP response latency metrics (recording p50, p95, p99 request duration timings via OpenTelemetry/Prometheus), log-level filtering (`info`, `warn`, `error`), and integration with APM platforms like Datadog, Sentry, or AWS CloudWatch.
-2. **API Rate Limiting & DDoS Protection**: Implement distributed per-user and per-IP rate limiting middleware (e.g., `express-rate-limit` with Upstash/Redis) on authentication and write endpoints to prevent brute-force attacks and abuse.
-3. **Distributed Redis Auth Cache**: Upgrade the short-lived in-memory token verification cache to a distributed Redis / ElastiCache layer for multi-instance serverless scaling.
-4. **Asynchronous Job Queues for Large CSVs**: Offload massive CSV file processing (100,000+ rows) to asynchronous worker queues (e.g., BullMQ) with real-time progress status updates via WebSockets.
-5. **Immutable Audit Logging & History**: Maintain immutable audit trail tables tracking period locking and unlocking events, including user IDs, IP addresses, user-agent headers, and timestamps.
-6. **Automated CI/CD Pipeline**: Setup GitHub Actions workflows for automated linting, unit/integration testing, security vulnerability scanning, and multi-environment deployment (Staging & Production).
-7. **Production Infrastructure Upgrades (Supabase Pro & Vercel Pro)**: Upgrade from free-tier infrastructure to paid production tiers (Supabase Pro/Enterprise & Vercel Pro) to eliminate automatic database pausing, unlock dedicated compute resources, remove serverless execution timeouts (10s Hobby limit), enable daily automated backups with Point-in-Time Recovery (PITR), and configure dedicated SMTP email delivery.
-8. **Global CDN & Web Application Firewall (Cloudflare / AWS CloudFront)**: Place a global CDN and WAF layer (e.g., Cloudflare Enterprise) in front of application domains for worldwide edge asset caching, automated DDoS attack absorption, HTTP/3 protocol optimization, and Web Application Firewall (WAF) bot protection.
-9. **Granular Transaction Timestamps for Actuals**: Upgrade `actuals` to store exact `transaction_date DATE` or `spend_timestamp TIMESTAMPTZ` for individual transaction receipts, using PostgreSQL generated columns (`to_char(transaction_date, 'YYYY-MM')`) to derive monthly report aggregations while enabling daily/weekly spending velocity analytics.
-10. **Publicly Shareable Read-Only Report Links**: Allow users to generate secure, tokenized read-only public URLs (with optional expiration dates and password protection) so external stakeholders and auditors can view financial variance reports without requiring an account.
-11. **Multi-Currency Support & Exchange Rate Conversion**: Allow users to log actual spending in international currencies (e.g., EUR, GBP, INR) with automatic real-time exchange rate conversion into a primary base reporting currency.
-12. **Role-Based Access Control (RBAC) & Team Workspaces**: Expand from single-user accounts to multi-tenant organization team workspaces with granular permissions (`Admin`, `Finance Manager`, `Editor`, `Read-Only Viewer`).
-
-
-
-
-
+1. **Structured Logging & Sentry APM Error Monitoring**: Replace standard console logs with high-performance JSON loggers (e.g., `Pino` or `Winston`) carrying correlation IDs (`request_id`, `trace_id`), HTTP response latency metrics (p50, p95, p99 request duration timings via OpenTelemetry/Prometheus), and Sentry real-time exception tracking.
+2. **API Rate Limiting & Stricter Bulk Input Protection**: Implement distributed per-user and per-IP rate limiting middleware (e.g., `express-rate-limit` with Upstash/Redis) on authentication and bulk CSV import endpoints to prevent brute-force attacks and abuse.
+3. **Optimistic Concurrency Control**: Add a `version` column or `updated_at` check on `plans` and `actuals` write operations to detect conflicting edits and prevent last-write-wins data overwrites across concurrent browser tabs.
+4. **Partial-Success CSV Imports & Downloadable Error Reports**: Upgrade CSV import to support partial-success execution—committing valid rows while generating a downloadable CSV report of just the rejected rows for fast correction and resubmission.
+5. **Soft-Delete for Historical Reproducibility**: Implement `deleted_at` soft-deletes for categories, plans, and actuals so historical financial reports stay 100% reproducible even if a category is removed.
+6. **Cursor-Based Pagination for Drill-Downs & Bulk Data**: Implement cursor-based pagination on report drill-down detail modals and CSV validation feedback lists to maintain high performance with tens of thousands of transaction entries.
+7. **Distributed Redis Auth Cache**: Upgrade the short-lived in-memory token verification cache to a distributed Redis / ElastiCache layer for multi-instance serverless scaling.
+8. **Asynchronous Job Queues for Heavy CSVs**: Offload massive CSV file processing (100,000+ rows) to asynchronous worker queues (e.g., BullMQ) with real-time progress status updates via WebSockets.
+9. **Immutable Audit Logging & History**: Maintain immutable audit trail tables tracking period locking and unlocking events, including user IDs, IP addresses, user-agent headers, and timestamps.
+10. **Expanded Integration & End-to-End (E2E) Test Suite**: Expand test coverage beyond unit tests to include Supertest API integration tests against a test PostgreSQL instance, plus Playwright/Cypress E2E tests for reporting and drill-down flows.
+11. **Production Infrastructure Upgrades (Supabase Pro & Vercel Pro)**: Upgrade from free-tier infrastructure to paid production tiers (Supabase Pro/Enterprise & Vercel Pro) to eliminate automatic database pausing, unlock dedicated compute resources, remove serverless execution timeouts (10s Hobby limit), enable daily automated backups with Point-in-Time Recovery (PITR), and configure dedicated SMTP email delivery.
+12. **Global CDN & Web Application Firewall (Cloudflare / AWS CloudFront)**: Place a global CDN and WAF layer (e.g., Cloudflare Enterprise) in front of application domains for worldwide edge asset caching, automated DDoS attack absorption, HTTP/3 protocol optimization, and Web Application Firewall (WAF) bot protection.
+13. **Granular Transaction Timestamps for Actuals**: Upgrade `actuals` to store exact `transaction_date DATE` or `spend_timestamp TIMESTAMPTZ` for individual transaction receipts, using PostgreSQL generated columns (`to_char(transaction_date, 'YYYY-MM')`) to derive monthly report aggregations while enabling daily/weekly spending velocity analytics.
+14. **Publicly Shareable Read-Only Report Links**: Allow users to generate secure, tokenized read-only public URLs (with optional expiration dates and password protection) so external stakeholders and auditors can view financial variance reports without requiring an account.
+15. **Multi-Currency Support & Exchange Rate Conversion**: Allow users to log actual spending in international currencies (e.g., EUR, GBP, INR) with automatic real-time exchange rate conversion into a primary base reporting currency.
+16. **Role-Based Access Control (RBAC) & Team Workspaces**: Expand from single-user accounts to multi-tenant organization team workspaces with granular permissions (`Admin`, `Finance Manager`, `Editor`, `Read-Only Viewer`).
