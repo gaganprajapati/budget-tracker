@@ -22,6 +22,24 @@ export interface CsvParseSummary {
 }
 
 export class CsvImportService {
+  /**
+   * Normalizes dates to YYYY-MM format.
+   * Accepts "2026-01", "2026-01-15", "2026-01-15T00:00:00Z", "2026/01/15", "01/15/2026".
+   */
+  private normalizeMonth(monthStr: string): string {
+    const trimmed = (monthStr || '').trim();
+    if (/^\d{4}-(0[1-9]|1[0-2])$/.test(trimmed)) {
+      return trimmed;
+    }
+    const parsedDate = new Date(trimmed);
+    if (!isNaN(parsedDate.getTime())) {
+      const year = parsedDate.getUTCFullYear();
+      const month = parsedDate.getUTCMonth() + 1;
+      return `${year}-${month < 10 ? '0' : ''}${month}`;
+    }
+    return trimmed;
+  }
+
   public parseAndValidateCsv(csvContent: string): CsvParseSummary {
     const rawRecords = parse(csvContent, {
       columns: true,
@@ -41,7 +59,8 @@ export class CsvImportService {
         normalizedRecord[key.toLowerCase().trim()] = record[key];
       });
 
-      const month = normalizedRecord['month'] || '';
+      const rawMonth = normalizedRecord['month'] || '';
+      const month = this.normalizeMonth(rawMonth);
       const category = normalizedRecord['category'] || '';
       const amountRaw = normalizedRecord['amount'] || '';
       const note = normalizedRecord['note'] || '';

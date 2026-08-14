@@ -87,4 +87,47 @@ describe('VarianceService Domain Calculations', () => {
     expect(row.variance).toBe(1500);
     expect(row.variance_percentage).toBeNull();
   });
+
+  it('should correctly sum multiple actual spend entries logged in the same month and category', () => {
+    const plans: Plan[] = [
+      { id: 'p1', user_id: 'user-1', category_id: 'cat-marketing', month: '2026-03', target_amount: 5000, created_at: '', updated_at: '' },
+    ];
+    const actuals: Actual[] = [
+      { id: 'a1', user_id: 'user-1', category_id: 'cat-marketing', month: '2026-03', amount: 1500, note: null, created_at: '', updated_at: '' },
+      { id: 'a2', user_id: 'user-1', category_id: 'cat-marketing', month: '2026-03', amount: 2500, note: null, created_at: '', updated_at: '' },
+    ];
+
+    const summary = varianceService.calculateReportSummary({
+      categories: mockCategories,
+      plans,
+      actuals,
+      lockedMonths: new Set<string>(),
+    });
+
+    const row = summary.rows[0];
+    expect(row.plan_amount).toBe(5000);
+    expect(row.actual_amount).toBe(4000);
+    expect(row.variance).toBe(-1000);
+    expect(row.variance_percentage).toBe(-20.00);
+  });
+
+  it('should include actual entries logged for categories where target plan is 0 / omitted', () => {
+    const actuals: Actual[] = [
+      { id: 'a1', user_id: 'user-1', category_id: 'cat-payroll', month: '2026-04', amount: 3000, note: null, created_at: '', updated_at: '' },
+    ];
+
+    const summary = varianceService.calculateReportSummary({
+      categories: mockCategories,
+      plans: [],
+      actuals,
+      lockedMonths: new Set<string>(),
+    });
+
+    expect(summary.rows).toHaveLength(1);
+    expect(summary.rows[0].plan_amount).toBe(0);
+    expect(summary.rows[0].actual_amount).toBe(3000);
+    expect(summary.rows[0].variance).toBe(3000);
+    expect(summary.rows[0].variance_percentage).toBeNull();
+  });
 });
+
