@@ -10,6 +10,9 @@ This application allows users to set monthly spending targets per category, log 
 - **Deployed Application URL**: `https://budget-tracker-ui-theta.vercel.app` *(or your Vercel deployment link)*
 - **Repository Structure**: Monorepo with `/backend` (Express API) and `/frontend` (React Vite Web App).
 
+![Plan vs Actual Tracker Report Preview](assets/reports_screenshot.png)
+
+
 ---
 
 ## 🛠️ Prerequisites & Step-by-Step Local Setup
