@@ -19,7 +19,7 @@ export const Navbar: React.FC = () => {
           <DollarSign size={20} color="#ffffff" />
         </div>
         <div>
-          <h1 style={{ fontSize: '1.2rem', fontWeight: 800, background: 'linear-gradient(90deg, #ffffff, #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+          <h1 style={{ fontSize: '1.2rem', fontWeight: 800, background: 'linear-gradient(90deg, rgb(95 82 207), #94a3b8)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
             Plan vs Actual Tracker
           </h1>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Enterprise Spending & Variance Analytics</p>

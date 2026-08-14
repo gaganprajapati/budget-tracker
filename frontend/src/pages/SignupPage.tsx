@@ -8,6 +8,7 @@ export const SignupPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const { signup } = useAuth();
@@ -16,6 +17,7 @@ export const SignupPage: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccessMessage(null);
 
     if (password !== confirmPassword) {
       setError('Passwords do not match.');
@@ -30,8 +32,12 @@ export const SignupPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await signup(email, password);
-      navigate('/');
+      const result = await signup(email, password);
+      if (result.isConfirmed) {
+        navigate('/');
+      } else {
+        setSuccessMessage('We have sent you a confirmation link. Please check your email to confirm your account and proceed to sign in.');
+      }
     } catch (err: any) {
       const msg = err.response?.data?.error?.message || 'Signup failed. Please try again.';
       setError(msg);
@@ -59,56 +65,72 @@ export const SignupPage: React.FC = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div className="form-group">
-            <label className="form-label">Email Address</label>
-            <input
-              type="email"
-              className="form-input"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="user@example.com"
-              required
-            />
+        {successMessage ? (
+          <div style={{ textAlign: 'center', padding: '20px 10px' }}>
+            <div className="badge badge-favorable" style={{ width: '100%', padding: '14px', marginBottom: '20px', borderRadius: '8px', fontSize: '0.9rem', lineHeight: '1.4' }}>
+              ✉️ {successMessage}
+            </div>
+            <Link to="/login" className="btn btn-primary" style={{ width: '100%', display: 'inline-block', textAlign: 'center', textDecoration: 'none' }}>
+              Proceed to Sign In
+            </Link>
           </div>
+        ) : (
 
-          <div className="form-group">
-            <label className="form-label">Password</label>
-            <input
-              type="password"
-              className="form-input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="At least 6 characters"
-              required
-            />
-          </div>
 
-          <div className="form-group">
-            <label className="form-label">Confirm Password</label>
-            <input
-              type="password"
-              className="form-input"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Re-enter password"
-              required
-            />
-          </div>
+          <>
+            <form onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input
+                  type="email"
+                  className="form-input"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="user@example.com"
+                  required
+                />
+              </div>
 
-          <button type="submit" className="btn btn-success" style={{ width: '100%', marginTop: '12px' }} disabled={isSubmitting}>
-            <UserPlus size={18} />
-            {isSubmitting ? 'Creating account...' : 'Create Account'}
-          </button>
-        </form>
+              <div className="form-group">
+                <label className="form-label">Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 6 characters"
+                  required
+                />
+              </div>
 
-        <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
-          Already have an account?{' '}
-          <Link to="/login" style={{ color: 'var(--accent-primary)', fontWeight: 600, textDecoration: 'none' }}>
-            Sign In
-          </Link>
-        </p>
+              <div className="form-group">
+                <label className="form-label">Confirm Password</label>
+                <input
+                  type="password"
+                  className="form-input"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Re-enter password"
+                  required
+                />
+              </div>
+
+              <button type="submit" className="btn btn-success" style={{ width: '100%', marginTop: '12px' }} disabled={isSubmitting}>
+                <UserPlus size={18} />
+                {isSubmitting ? 'Creating account...' : 'Create Account'}
+              </button>
+            </form>
+
+            <p style={{ textAlign: 'center', marginTop: '24px', fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+              Already have an account?{' '}
+              <Link to="/login" style={{ color: 'var(--accent-primary)', fontWeight: 600, textDecoration: 'none' }}>
+                Sign In
+              </Link>
+            </p>
+          </>
+        )}
       </div>
     </div>
+
   );
 };

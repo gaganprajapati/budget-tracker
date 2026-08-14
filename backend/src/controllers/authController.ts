@@ -1,6 +1,7 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../middleware/authMiddleware.js';
 import { supabase } from '../config/supabase.js';
+import { env } from '../config/env.config.js';
 import { AuthSignupSchema, AuthLoginSchema } from '../validators/schemas.js';
 
 export async function signup(req: AuthenticatedRequest, res: Response): Promise<void> {
@@ -16,7 +17,16 @@ export async function signup(req: AuthenticatedRequest, res: Response): Promise<
   const { email, password } = parseResult.data;
 
   try {
-    const { data, error } = await supabase.auth.signUp({ email, password });
+    const redirectTo = `${env.FRONTEND_URL}/login`;
+    console.log("redirectTo>>>>", redirectTo)
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectTo,
+      },
+    });
+
 
     if (error) {
       console.error("Error in signup:", error);

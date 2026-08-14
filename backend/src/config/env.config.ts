@@ -7,6 +7,7 @@ export interface EnvironmentConfig {
   SUPABASE_URL: string;
   SUPABASE_PUBLISHABLE_KEY: string;
   SUPABASE_SECRET_KEY: string;
+  FRONTEND_URL: string;
 }
 
 function loadAndValidateEnvironment(): EnvironmentConfig {
@@ -37,7 +38,9 @@ function loadAndValidateEnvironment(): EnvironmentConfig {
     SUPABASE_URL: supabaseUrl || 'https://placeholder.supabase.co',
     SUPABASE_PUBLISHABLE_KEY: supabasePublishableKey || 'placeholder-publishable-key',
     SUPABASE_SECRET_KEY: supabaseSecretKey || 'placeholder-secret-key',
+    FRONTEND_URL: process.env.FRONTEND_URL || 'https://budget-tracker-ui-theta.vercel.app',
   };
 }
+
 
 export const env: EnvironmentConfig = loadAndValidateEnvironment();

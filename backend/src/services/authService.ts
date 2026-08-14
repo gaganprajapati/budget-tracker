@@ -13,7 +13,15 @@ export interface IAuthService {
 
 export class SupabaseAuthService implements IAuthService {
   public async verifyToken(token: string): Promise<UserSession> {
-    const { data: { user }, error } = await supabase.auth.getUser(token);
+    let { data: { user }, error } = await supabase.auth.getUser(token);
+
+    // Handle clock skew / time drift race condition between server and Supabase Auth ("JWT issued at future")
+    if (error && error.message.toLowerCase().includes('future')) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const retryResult = await supabase.auth.getUser(token);
+      user = retryResult.data.user;
+      error = retryResult.error;
+    }
 
     if (error || !user) {
       throw new Error(error?.message || 'Invalid or expired authentication token.');
@@ -24,6 +32,7 @@ export class SupabaseAuthService implements IAuthService {
       email: user.email || '',
     };
   }
+
 
   public getAuthenticatedClient(token: string): SupabaseClient {
     return getAuthenticatedSupabaseClient(token);

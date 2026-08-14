@@ -12,9 +12,10 @@ interface AuthContextType {
   token: string | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
-  signup: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  signup: (email: string, password: string) => Promise<{ isConfirmed: boolean }>;
+  logout: () => Promise<void>;
 }
+
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -67,20 +68,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signup = async (email: string, password: string): Promise<void> => {
+  const signup = async (email: string, password: string): Promise<{ isConfirmed: boolean }> => {
     queryClient.clear();
     const response = await apiClient.post('/auth/signup', { email, password });
     if (response.data.success) {
-      await login(email, password);
+      const session = response.data.data.session;
+      if (session && session.access_token) {
+        localStorage.setItem('budget_tracker_token', session.access_token);
+        setToken(session.access_token);
+        setUser(response.data.data.user);
+        return { isConfirmed: true };
+      }
+      return { isConfirmed: false };
+    }
+    return { isConfirmed: false };
+  };
+
+  const logout = async (): Promise<void> => {
+    try {
+      await apiClient.post('/auth/logout');
+    } catch (err) {
+      console.error('Logout API call failed:', err);
+    } finally {
+      queryClient.clear(); // Purge all cached reports, categories, plans, and locks from memory
+      localStorage.removeItem('budget_tracker_token');
+      setToken(null);
+      setUser(null);
     }
   };
 
-  const logout = (): void => {
-    queryClient.clear(); // Purge all cached reports, categories, plans, and locks from memory
-    localStorage.removeItem('budget_tracker_token');
-    setToken(null);
-    setUser(null);
-  };
+
 
 
   return (
